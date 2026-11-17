@@ -80,82 +80,82 @@ final readonly class TwoFactorManager implements LoginSecondFactorInterface
             || !preg_match('/^(?:[0-9]{6}|[A-Fa-f0-9]{5}-[A-Fa-f0-9]{5})$/D', $code)) {
             return null;
         }
-        return $this->connection->transactional(function () use ($context, $challenge, $code, $now): ?SecondFactorVerified {
-            // The atomic UPDATE acquires a write lock before reading any state,
-            // including on SQLite where SELECT FOR UPDATE is unavailable.
-            $affected = $this->connection->executeStatement(
-                'UPDATE symsvel_2fa_challenges SET attempts = attempts + 1
-                 WHERE token_hash = ? AND context = ? AND used_at IS NULL
-                   AND expires_at > ? AND attempts < 5',
-                [hash('sha256', $challenge), $context, self::date($now)],
-            );
-            if ($affected !== 1) {
-                return null;
-            }
-            $entry = $this->connection->fetchAssociative(
-                'SELECT principal_id FROM symsvel_2fa_challenges WHERE token_hash = ? AND context = ?',
-                [hash('sha256', $challenge), $context],
-            );
-            if ($entry === false) {
-                return null;
-            }
-            $subject = new TokenSubject($context, (int) $entry['principal_id']);
-            if (!$this->principals->isActive($subject)) {
-                return null;
-            }
-            $account = $this->account($subject);
-            if ($account === false) {
-                return null;
-            }
-            $secret = $this->cipher->decrypt((string) $account['secret_ciphertext']);
-            $counter = $this->totp->matchingCounter($secret, $code, $now->getTimestamp());
-            $isEnrollment = !(bool) $account['enabled'];
-            $codes = [];
+        $hash = hash('sha256', $challenge);
+        $entry = $this->connection->fetchAssociative(
+            'SELECT principal_id FROM symsvel_2fa_challenges WHERE token_hash = ? AND context = ?',
+            [$hash, $context],
+        );
+        if ($entry === false) {
+            return null;
+        }
 
-            if ($counter !== null) {
-                if ($account['last_counter'] !== null && $counter <= (int) $account['last_counter']) {
-                    return null; // TOTP cannot be replayed, even across challenges.
+        $subject = new TokenSubject($context, (int) $entry['principal_id']);
+        $codes = [];
+        // Auth owns the outer transaction. This is mandatory for the existing
+        // SQLite token store, which intentionally rejects nested transactions.
+        $issued = $this->tokens->issueWhen($subject, $now,
+            function () use ($subject, $context, $hash, $code, $now, &$codes): bool {
+                // Atomic UPDATE acquires the lock before reading account state
+                // on all supported databases, including SQLite.
+                $affected = $this->connection->executeStatement(
+                    'UPDATE symsvel_2fa_challenges SET attempts = attempts + 1
+                     WHERE token_hash = ? AND context = ? AND principal_id = ?
+                       AND used_at IS NULL AND expires_at > ? AND attempts < 5',
+                    [$hash, $context, $subject->id, self::date($now)],
+                );
+                if ($affected !== 1 || !$this->principals->isActive($subject)) {
+                    return false;
                 }
-                if ($isEnrollment) {
-                    $generated = $this->recovery->generate();
-                    $codes = $generated['plain'];
-                    $this->connection->update('symsvel_2fa_accounts', [
-                        'enabled' => 1,
-                        'enabled_at' => self::date($now),
-                        'last_counter' => $counter,
-                        'recovery_hashes' => json_encode($generated['hashed'], JSON_THROW_ON_ERROR),
-                    ], ['context' => $context, 'principal_id' => $subject->id]);
+                $account = $this->account($subject);
+                if ($account === false) {
+                    return false;
+                }
+                $secret = $this->cipher->decrypt((string) $account['secret_ciphertext']);
+                $counter = $this->totp->matchingCounter($secret, $code, $now->getTimestamp());
+                $isEnrollment = !(bool) $account['enabled'];
+                if ($counter !== null) {
+                    if ($account['last_counter'] !== null && $counter <= (int) $account['last_counter']) {
+                        return false;
+                    }
+                    if ($isEnrollment) {
+                        $generated = $this->recovery->generate();
+                        $codes = $generated['plain'];
+                        $this->connection->update('symsvel_2fa_accounts', [
+                            'enabled' => 1,
+                            'enabled_at' => self::date($now),
+                            'last_counter' => $counter,
+                            'recovery_hashes' => json_encode($generated['hashed'], JSON_THROW_ON_ERROR),
+                        ], ['context' => $context, 'principal_id' => $subject->id]);
+                    } else {
+                        $this->connection->update('symsvel_2fa_accounts', [
+                            'last_counter' => $counter,
+                        ], ['context' => $context, 'principal_id' => $subject->id]);
+                    }
                 } else {
+                    if ($isEnrollment) {
+                        return false;
+                    }
+                    $hashes = json_decode((string) $account['recovery_hashes'], true, 32, JSON_THROW_ON_ERROR);
+                    if (!is_array($hashes)) {
+                        throw new \RuntimeException('Corrupt 2FA recovery-code data.');
+                    }
+                    $remaining = $this->recovery->consume($code, $hashes);
+                    if ($remaining === null) {
+                        return false;
+                    }
                     $this->connection->update('symsvel_2fa_accounts', [
-                        'last_counter' => $counter,
+                        'recovery_hashes' => json_encode($remaining, JSON_THROW_ON_ERROR),
                     ], ['context' => $context, 'principal_id' => $subject->id]);
                 }
-            } else {
-                if ($isEnrollment) {
-                    return null;
-                }
-                $hashes = json_decode((string) $account['recovery_hashes'], true, 32, JSON_THROW_ON_ERROR);
-                if (!is_array($hashes)) {
-                    throw new \RuntimeException('Corrupt 2FA recovery-code data.');
-                }
-                $remaining = $this->recovery->consume($code, $hashes);
-                if ($remaining === null) {
-                    return null;
-                }
-                $this->connection->update('symsvel_2fa_accounts', [
-                    'recovery_hashes' => json_encode($remaining, JSON_THROW_ON_ERROR),
-                ], ['context' => $context, 'principal_id' => $subject->id]);
-            }
+                $this->connection->executeStatement(
+                    'UPDATE symsvel_2fa_challenges SET used_at = ? WHERE token_hash = ? AND used_at IS NULL',
+                    [self::date($now), $hash],
+                );
+                return true;
+            },
+        );
 
-            $this->connection->executeStatement(
-                'UPDATE symsvel_2fa_challenges SET used_at = ? WHERE token_hash = ? AND used_at IS NULL',
-                [self::date($now), hash('sha256', $challenge)],
-            );
-
-            // Uses Auth's existing token issuer. If emission fails, the same
-            // DBAL transaction rolls back challenge consumption and code use.
-            return new SecondFactorVerified($this->tokens->issue($subject, $now), $codes);
-        });
+        return $issued === null ? null : new SecondFactorVerified($issued, $codes);
     }
 
     /** @return array<string, mixed>|false */
