@@ -4,7 +4,7 @@
 
 L'implémentation reprend directement de XCore (`xcore-legacy-back`) les classes `TotpService`, `SecretCipher`, `RecoveryCodeService` et le principe d'un `LoginChallengeManager`. Les algorithmes restent natifs : TOTP RFC 6238/SHA1, libsodium `secretbox`, `password_hash` pour les codes de secours, `random_bytes` pour les challenges. **Aucune dépendance SchebTwoFactorBundle**.
 
-Le dépôt porte le nom `symsvel-module-2fa` mais Composer expose `module-two-factor`, car les contrats `ComposerModuleRegistry` et `SettingKeyQualifier` n'acceptent pas de slug commençant par un chiffre. Le manifeste porte `name: TwoFactor`. Ne pas modifier Tooling pour contourner ce contrat : le changement de package est volontaire.
+Le dépôt GitHub est `symsvel-module-two-factor`, le package Composer `symsvel-framework/module-two-factor` et le manifeste porte `name: TwoFactor`. Cette convention respecte les contrats `ComposerModuleRegistry` et `SettingKeyQualifier`, dont les slugs de module doivent commencer par une lettre. Aucun ajustement de Tooling n'est nécessaire.
 
 Auth enregistre les providers avec `symsvel.auth.second_factor` dans `PasswordLogin`. Le contrat `LoginSecondFactorInterface` déclare `begin(TokenSubject, now)` et `complete(context, challenge, code, now)`. Le module est le seul fournisseur de ce tag ; plusieurs fournisseurs sont refusés explicitement. Auth ne dépend jamais de TwoFactor. Sans ce service facultatif, login classique et émission des tokens sont inchangés.
 
@@ -30,6 +30,6 @@ Les deux parcours `/two-factor` sont fournis par le module et synchronisés au b
 
 ## Validation
 
-Tests unitaires : vecteurs RFC 6238, Base32 strict, codes de secours, chiffrement Sodium, enregistrement des services et indépendance des paramètres. Test d'intégration : véritable SQLite + `SettingManager` + `DbalTokenStore`, sans serveur réseau, pour contrôler l'émission conditionnelle, le rejeu, l'expiration, le contexte et les codes de récupération.
+Tests unitaires : vecteurs RFC 6238, Base32 strict, codes de secours, chiffrement Sodium, enregistrement des services et indépendance des paramètres. Test d'intégration : véritable SQLite + `SettingManager` + `DbalTokenStore`, sans serveur réseau, pour contrôler l'émission conditionnelle, le rejeu, l'expiration, le contexte, les codes de récupération et le verrouillage après cinq tentatives erronées. Un nouveau challenge doit rester utilisable après l'épuisement du précédent.
 
 Les tests sur SQLite ne remplacent pas les CT sur PostgreSQL, MySQL et MariaDB. Le projet BO seul ne doit pas exiger Users ; App ne doit pas être supposée présente. Toute installation via CLI nécessite publication de la recette Flex et résolution Composer sur Satis. La recette du module ne suffit pas si elle n'est pas ajoutée au catalogue technique.

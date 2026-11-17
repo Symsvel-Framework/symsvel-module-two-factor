@@ -169,4 +169,41 @@ final class TwoFactorManagerTest extends TestCase
             $em->getConnection()->close();
         }
     }
+
+    public function testFiveFailedAttemptsExhaustOnlyThatChallenge(): void
+    {
+        [$connection, $settings, $manager, , $em] = $this->services();
+        try {
+            $settings->set('two-factor.bo_required', '1');
+            $settings->flush();
+
+            $now = new \DateTimeImmutable('@1111111109');
+            $subject = new TokenSubject('bo', 27);
+            $challenge = $manager->begin($subject, $now);
+            self::assertNotNull($challenge);
+
+            // A recovery code cannot enroll a new account; each submission
+            // nevertheless consumes one of the challenge's five attempts.
+            for ($i = 0; $i < 5; ++$i) {
+                self::assertNull($manager->complete('bo', $challenge->challenge, 'AAAAA-AAAAA', $now));
+            }
+
+            self::assertSame(5, (int) $connection->fetchOne(
+                'SELECT attempts FROM symsvel_2fa_challenges WHERE token_hash = ?',
+                [hash('sha256', $challenge->challenge)],
+            ));
+
+            $valid = self::otp((string) $challenge->totpSecret, $now->getTimestamp());
+            self::assertNull($manager->complete('bo', $challenge->challenge, $valid, $now));
+            self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM symsvel_auth_access_tokens'));
+
+            $next = $manager->begin($subject, $now);
+            self::assertNotNull($next);
+            self::assertNotSame($challenge->challenge, $next->challenge);
+            self::assertNotNull($manager->complete('bo', $next->challenge, $valid, $now));
+            self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM symsvel_auth_access_tokens'));
+        } finally {
+            $em->getConnection()->close();
+        }
+    }
 }

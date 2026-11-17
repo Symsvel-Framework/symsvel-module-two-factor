@@ -1,6 +1,6 @@
 # SymSvel TwoFactor (module optionnel)
 
-Dépôt GitHub : `symsvel-module-2fa`. **Package Composer : `symsvel-framework/module-two-factor`**. Le nom du package et le manifeste `TwoFactor` respectent le contrat Tooling (slug de module commençant par une lettre), tandis que le dépôt conserve son nom original.
+Dépôt GitHub : `symsvel-module-two-factor`. **Package Composer : `symsvel-framework/module-two-factor`**. Le dépôt, le package Composer et le manifeste `TwoFactor` suivent désormais une convention cohérente ; le slug `module-two-factor` respecte le contrat Tooling.
 
 Ce module ajoute une authentification à deux facteurs TOTP sans SchebTwoFactorBundle, en adaptant les classes XCore : `TotpService`, `SecretCipher`, `RecoveryCodeService` et le mécanisme de challenge temporaire.
 
