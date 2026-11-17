@@ -1,6 +1,6 @@
 {
     "schema": 1,
-    "name": "2fa",
+    "name": "TwoFactor",
     "dependencies": {
         "auth": "*",
         "settings": "*"
