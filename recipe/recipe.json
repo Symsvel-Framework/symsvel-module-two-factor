@@ -1,0 +1,30 @@
+{
+    "manifests": {
+        "symsvel-framework/module-2fa": {
+            "manifest": {
+                "bundles": {
+                    "SymSvel\\Module\\2fa\\2faBundle": [
+                        "all"
+                    ]
+                },
+                "copy-from-recipe": {
+                    "config/": "%CONFIG_DIR%/"
+                }
+            },
+            "files": {
+                "config/routes/2fa.yaml": {
+                    "contents": [
+                        "2fa:",
+                        "    resource:",
+                        "        path: '@2faBundle/src/Controller/'",
+                        "        namespace: SymSvel\\Module\\2fa\\Controller",
+                        "    type: attribute",
+                        ""
+                    ],
+                    "executable": false
+                }
+            },
+            "ref": "REPLACE_WITH_RECIPE_COMMIT_SHA"
+        }
+    }
+}
