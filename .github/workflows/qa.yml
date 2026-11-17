@@ -35,3 +35,75 @@ jobs:
       - name: Lint PHP
         run: find back/src back/tests Migration -type f -name '*.php' -print0 | xargs -0 -r -n 1 php -l
       - run: composer qa
+
+  bo-frontend:
+    runs-on: [self-hosted, linux, ARM64, symsvel]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Checkout BO host on dev
+        uses: actions/checkout@v4
+        with:
+          repository: Symsvel-Framework/symsvel-bo
+          ref: dev
+          path: assembled-bo
+          token: ${{ secrets.SYMSVEL_READ_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: assembled-bo/package-lock.json
+      - name: Assemble optional TwoFactor module
+        run: |
+          mkdir -p assembled-bo/src/lib/modules/two-factor/routes/two-factor
+          mkdir -p assembled-bo/src/routes/two-factor
+          cp bo/src/routes/two-factor/+page.svelte assembled-bo/src/lib/modules/two-factor/routes/two-factor/+page.svelte
+          cat > assembled-bo/src/routes/two-factor/+page.svelte <<'ROUTE'
+          <script lang="ts">
+            import ModulePage from '#lib/modules/two-factor/routes/two-factor/+page.svelte';
+          </script>
+          <ModulePage />
+          ROUTE
+      - name: Validate assembled BO static Svelte
+        working-directory: assembled-bo
+        run: |
+          npm ci --no-audit --no-fund
+          npm run format
+          npm run check
+          npm run lint
+          npm run build
+
+  app-frontend:
+    runs-on: [self-hosted, linux, ARM64, symsvel]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Checkout APP host on dev
+        uses: actions/checkout@v4
+        with:
+          repository: Symsvel-Framework/symsvel-app
+          ref: dev
+          path: assembled-app
+          token: ${{ secrets.SYMSVEL_READ_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: assembled-app/package-lock.json
+      - name: Assemble optional TwoFactor module
+        run: |
+          mkdir -p assembled-app/src/lib/modules/two-factor/routes/two-factor
+          mkdir -p assembled-app/src/routes/two-factor
+          cp app/src/routes/two-factor/+page.svelte assembled-app/src/lib/modules/two-factor/routes/two-factor/+page.svelte
+          cat > assembled-app/src/routes/two-factor/+page.svelte <<'ROUTE'
+          <script lang="ts">
+            import ModulePage from '#lib/modules/two-factor/routes/two-factor/+page.svelte';
+          </script>
+          <ModulePage />
+          ROUTE
+      - name: Validate assembled APP static Svelte
+        working-directory: assembled-app
+        run: |
+          npm ci --no-audit --no-fund
+          npm run format
+          npm run check
+          npm run lint
+          npm run build
