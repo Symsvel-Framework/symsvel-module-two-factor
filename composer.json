@@ -5,6 +5,7 @@
     "license": "proprietary",
     "require": {
         "php": ">=8.4",
+        "ext-sodium": "*",
         "symfony/framework-bundle": "^8.1",
         "doctrine/dbal": "^4.3",
         "symsvel-framework/module-auth": "dev-dev",
