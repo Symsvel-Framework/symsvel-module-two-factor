@@ -31,7 +31,7 @@ final readonly class TwoFactorManager implements LoginSecondFactorInterface
 
     public function begin(TokenSubject $subject, \DateTimeImmutable $now): ?SecondFactorChallenge
     {
-        $required = $this->settings->get('2fa.'.($subject->context === 'bo' ? 'bo_required' : 'app_required')) === '1';
+        $required = $this->settings->get('two-factor.'.($subject->context === 'bo' ? 'bo_required' : 'app_required')) === '1';
         return $this->connection->transactional(function () use ($subject, $now, $required): ?SecondFactorChallenge {
             $account = $this->account($subject);
             if (!$required && (!$account || !(bool) $account['enabled'])) {
