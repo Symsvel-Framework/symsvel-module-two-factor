@@ -1,12 +1,37 @@
 name: QA
-on: [push, pull_request]
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+concurrency:
+  group: two-factor-qa-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, ARM64, symsvel]
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-      - run: composer install --no-interaction --prefer-dist
+      - uses: actions/checkout@v5
+      - name: Verify PHP 8.4 and sodium
+        run: |
+          php -v
+          php -r 'if (PHP_VERSION_ID < 80400 || PHP_VERSION_ID >= 80500 || !extension_loaded("sodium")) exit(1);'
+      - name: Install private Composer dependencies
+        env:
+          SYMSVEL_READ_TOKEN: ${{ secrets.SYMSVEL_READ_TOKEN }}
+        run: |
+          test -n "$SYMSVEL_READ_TOKEN"
+          for repo in symsvel-module-auth symsvel-module-settings symsvel-module-acls; do
+            if ! curl --fail --silent --show-error --output /dev/null \
+                --header "Authorization: Bearer $SYMSVEL_READ_TOKEN" \
+                --header "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/Symsvel-Framework/$repo"; then
+              echo "::error::SYMSVEL_READ_TOKEN cannot read $repo"
+              exit 1
+            fi
+          done
+          export COMPOSER_AUTH="$(php -r 'echo json_encode(["github-oauth" => ["github.com" => getenv("SYMSVEL_READ_TOKEN")]], JSON_THROW_ON_ERROR);')"
+          composer install --no-interaction --prefer-dist --no-progress
+      - name: Lint PHP
+        run: find back/src back/tests Migration -type f -name '*.php' -print0 | xargs -0 -r -n 1 php -l
       - run: composer qa
