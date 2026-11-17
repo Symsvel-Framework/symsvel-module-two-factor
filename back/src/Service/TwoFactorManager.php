@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use SymSvel\Module\Auth\Identity\LoginSecondFactorInterface;
 use SymSvel\Module\Auth\Identity\PrincipalStatus;
 use SymSvel\Module\Auth\Identity\SecondFactorChallenge;
+use SymSvel\Module\Auth\Identity\SecondFactorVerified;
 use SymSvel\Module\Auth\Token\TokenIssuer;
 use SymSvel\Module\Auth\Token\TokenSubject;
 use SymSvel\Module\Settings\Service\SettingManager;
@@ -72,14 +73,14 @@ final readonly class TwoFactorManager implements LoginSecondFactorInterface
         });
     }
 
-    public function complete(string $context, string $challenge, string $code, \DateTimeImmutable $now): ?TwoFactorCompletion
+    public function complete(string $context, string $challenge, string $code, \DateTimeImmutable $now): ?SecondFactorVerified
     {
         if (!in_array($context, ['bo', 'app'], true)
             || !preg_match('/^[A-Za-z0-9_-]{43}$/D', $challenge)
             || !preg_match('/^(?:[0-9]{6}|[A-Fa-f0-9]{5}-[A-Fa-f0-9]{5})$/D', $code)) {
             return null;
         }
-        return $this->connection->transactional(function () use ($context, $challenge, $code, $now): ?TwoFactorCompletion {
+        return $this->connection->transactional(function () use ($context, $challenge, $code, $now): ?SecondFactorVerified {
             // The atomic UPDATE acquires a write lock before reading any state,
             // including on SQLite where SELECT FOR UPDATE is unavailable.
             $affected = $this->connection->executeStatement(
@@ -153,7 +154,7 @@ final readonly class TwoFactorManager implements LoginSecondFactorInterface
 
             // Uses Auth's existing token issuer. If emission fails, the same
             // DBAL transaction rolls back challenge consumption and code use.
-            return new TwoFactorCompletion($this->tokens->issue($subject, $now), $codes);
+            return new SecondFactorVerified($this->tokens->issue($subject, $now), $codes);
         });
     }
 
