@@ -1,4 +1,4 @@
-# SymSvel TwoFactor (module optionnel)
+# SymSvel TwoFactor (module natif de sécurité)
 
 Dépôt GitHub : `symsvel-module-two-factor`. **Package Composer : `symsvel-framework/module-two-factor`**. Le dépôt, le package Composer et le manifeste `TwoFactor` suivent désormais une convention cohérente ; le slug `module-two-factor` respecte le contrat Tooling.
 
@@ -6,7 +6,7 @@ Ce module ajoute une authentification à deux facteurs TOTP sans SchebTwoFactorB
 
 ## Périmètre
 
-- Installation facultative, dépend d'Auth et Settings ; BO et App restent indépendants.
+- Installé automatiquement avec les modules natifs ; dépend d'Auth et Settings. BO et App restent des contextes indépendants.
 - TOTP RFC 6238 SHA1, 6 chiffres, pas de 30 s, fenêtre ±1 pas.
 - Clé TOTP chiffrée par libsodium ; codes de secours hachés et consommables une seule fois.
 - Challenge aléatoire opaque 256 bits, hash SHA-256 en BDD, durée 5 min et 5 tentatives maximum.
@@ -16,7 +16,9 @@ Ce module ajoute une authentification à deux facteurs TOTP sans SchebTwoFactorB
 
 ## Configuration
 
-Dans le BO Settings, les paramètres du module sont `two-factor.bo_required` et `two-factor.app_required`, booléens indépendants et non bloquants pendant l'installation. Sans paramètre activé et sans 2FA déjà enrôlée, la connexion historique continue. Une politique activée impose un enrôlement lors de la prochaine connexion.
+La 2FA est **toujours obligatoire pour toute nouvelle session BO**, y compris celle du premier administrateur créé au Setup. Aucun interrupteur BO ne peut désactiver cette obligation. L'ancien paramètre `two-factor.bo_required`, s'il existe dans une installation, est ignoré et n'est plus exposé dans Settings.
+
+Le paramètre `two-factor.app_required` permet d'imposer la 2FA côté App (désactivé par défaut). Sans politique App et sans compte déjà enrôlé, la connexion App demeure classique. Un compte App déjà enrôlé doit continuer à vérifier son second facteur, même si la politique globale est désactivée.
 
 La page optionnelle `/two-factor` est synchronisée dans BO et App via Tooling lors de l'installation du module. Lors du premier challenge, la clé d'enrôlement est affichée pour une configuration **manuelle** dans une application TOTP. Après validation, huit codes de secours apparaissent une seule fois. Le QR code XCore n'est pas encore repris : aucune bibliothèque frontend n'est ajoutée arbitrairement.
 
@@ -24,6 +26,6 @@ Les écrans et les clients BO/App hôtes utilisent une réponse de challenge HTT
 
 ## État et validation
 
-Le code et les tests automatisés sont sur `dev`. Vérifier la CI du dernier commit ; puis effectuer un crash-test local, la synchronisation du module Svelte, les migrations Schema multibase, l'enrôlement BO, l'App, les codes de récupération, les expirations et le parcours avec 2FA désinstallée. La livraison ne sera déclarée terminée qu'après CI verte, CT validés et documentation à jour.
+Le code et les tests automatisés sont sur `dev`. Vérifier la CI du dernier commit ; puis effectuer un crash-test local, la synchronisation du module Svelte, les migrations Schema multibase, l'enrôlement BO obligatoire (y compris premier admin), l'App facultative, les codes de récupération, les expirations et le refus de connexion BO si le provider est absent. La livraison ne sera déclarée terminée qu'après CI verte, CT validés et documentation à jour.
 
 Voir [documentation technique](docs/dev/index.md).

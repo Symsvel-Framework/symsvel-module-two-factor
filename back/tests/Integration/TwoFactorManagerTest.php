@@ -94,8 +94,6 @@ final class TwoFactorManagerTest extends TestCase
     {
         [$connection, $settings, $manager, , $em] = $this->services();
         try {
-            $settings->set('two-factor.bo_required', '1');
-            $settings->flush();
             $now = new \DateTimeImmutable('@1111111109');
             $subject = new TokenSubject('bo', 7);
             $challenge = $manager->begin($subject, $now);
@@ -133,7 +131,9 @@ final class TwoFactorManagerTest extends TestCase
             $settings->set('two-factor.app_required', '1');
             $settings->flush();
             $time = new \DateTimeImmutable('@1111111109');
-            self::assertNull($manager->begin(new TokenSubject('bo', 7), $time));
+            $boChallenge = $manager->begin(new TokenSubject('bo', 7), $time);
+            self::assertNotNull($boChallenge);
+            self::assertTrue($boChallenge->enrollmentRequired);
             $subject = new TokenSubject('app', 7);
             $challenge = $manager->begin($subject, $time);
             self::assertNotNull($challenge);
@@ -156,8 +156,6 @@ final class TwoFactorManagerTest extends TestCase
     {
         [$connection, $settings, $manager, $status, $em] = $this->services();
         try {
-            $settings->set('two-factor.bo_required', '1');
-            $settings->flush();
             $time = new \DateTimeImmutable('@1111111109');
             $challenge = $manager->begin(new TokenSubject('bo', 11), $time);
             $code = self::otp((string) $challenge->totpSecret, $time->getTimestamp());
@@ -174,8 +172,6 @@ final class TwoFactorManagerTest extends TestCase
     {
         [$connection, $settings, $manager, , $em] = $this->services();
         try {
-            $settings->set('two-factor.bo_required', '1');
-            $settings->flush();
 
             $now = new \DateTimeImmutable('@1111111109');
             $subject = new TokenSubject('bo', 27);
@@ -206,4 +202,25 @@ final class TwoFactorManagerTest extends TestCase
             $em->getConnection()->close();
         }
     }
+    public function testBoAlwaysRequiresSecondFactorAndAppRemainsOptIn(): void
+    {
+        [$connection, $settings, $manager, , $em] = $this->services();
+        try {
+            $now = new \DateTimeImmutable('@1111111109');
+            $subject = new TokenSubject('bo', 31);
+
+            // Even when no Settings value is present, BO must enroll first.
+            $bo = $manager->begin($subject, $now);
+            self::assertNotNull($bo);
+            self::assertTrue($bo->enrollmentRequired);
+            self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM symsvel_auth_access_tokens'));
+
+            // App remains password-only unless its own policy is enabled or
+            // the account has previously enrolled in 2FA.
+            self::assertNull($manager->begin(new TokenSubject('app', 31), $now));
+        } finally {
+            $em->getConnection()->close();
+        }
+    }
+
 }

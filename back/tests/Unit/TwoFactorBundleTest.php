@@ -13,7 +13,7 @@ use SymSvel\Module\TwoFactor\Service\TwoFactorSettingDefinitionProvider;
 
 final class TwoFactorBundleTest extends TestCase
 {
-    public function testOptionalProviderIsTaggedAndPolicyIsSeparatedByContext(): void
+    public function testProviderIsTaggedAndOnlyAppPolicyIsConfigurable(): void
     {
         $builder = new ContainerBuilder();
         $configurator = (new \ReflectionClass(ContainerConfigurator::class))->newInstanceWithoutConstructor();
@@ -23,7 +23,7 @@ final class TwoFactorBundleTest extends TestCase
         self::assertTrue($builder->getDefinition(TwoFactorSettingDefinitionProvider::class)
             ->hasTag('symsvel.settings.definition_provider'));
         $definitions = iterator_to_array((new TwoFactorSettingDefinitionProvider())->definitions());
-        self::assertSame(['bo_required', 'app_required'], array_map(static fn ($d) => $d->key, $definitions));
-        self::assertSame(['boolean', 'boolean'], array_map(static fn ($d) => $d->type, $definitions));
+        self::assertSame(['app_required'], array_map(static fn ($d) => $d->key, $definitions));
+        self::assertSame(['boolean'], array_map(static fn ($d) => $d->type, $definitions));
     }
 }

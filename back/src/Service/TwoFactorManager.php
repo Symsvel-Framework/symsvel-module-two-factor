@@ -14,8 +14,9 @@ use SymSvel\Module\Auth\Token\TokenSubject;
 use SymSvel\Module\Settings\Service\SettingManager;
 
 /**
- * Optional 2FA policy and single-use DBAL challenges, never a second token
- * system. The full SymSvel session is created only after factor verification.
+ * Mandatory second factor for BO; App policy remains configurable.
+ * Single-use DBAL challenges never create a separate token system.
+ * Full sessions are issued only after factor verification.
  */
 final readonly class TwoFactorManager implements LoginSecondFactorInterface
 {
@@ -32,7 +33,8 @@ final readonly class TwoFactorManager implements LoginSecondFactorInterface
 
     public function begin(TokenSubject $subject, \DateTimeImmutable $now): ?SecondFactorChallenge
     {
-        $required = $this->settings->get('two-factor.'.($subject->context === 'bo' ? 'bo_required' : 'app_required')) === '1';
+        $required = $subject->context === 'bo'
+            || $this->settings->get('two-factor.app_required') === '1';
         return $this->connection->transactional(function () use ($subject, $now, $required): ?SecondFactorChallenge {
             $account = $this->account($subject);
             if (!$required && (!$account || !(bool) $account['enabled'])) {
