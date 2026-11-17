@@ -1,8 +1,14 @@
 {
     "schema": 1,
     "name": "2fa",
-    "dependencies": {},
-    "tables": [],
+    "dependencies": {
+        "auth": "*",
+        "settings": "*"
+    },
+    "tables": [
+        "symsvel_2fa_accounts",
+        "symsvel_2fa_challenges"
+    ],
     "components": {
         "back": "back"
     },
