@@ -1,24 +1,29 @@
 {
     "name": "symsvel-framework/module-2fa",
-    "description": "SymSvel module 2fa",
+    "description": "Optional native TOTP and recovery-code second-factor module for SymSvel",
     "type": "symfony-bundle",
     "license": "proprietary",
     "require": {
         "php": ">=8.4",
-        "symfony/framework-bundle": "^8.1"
+        "symfony/framework-bundle": "^8.1",
+        "doctrine/dbal": "^4.3",
+        "symsvel-framework/module-auth": "dev-dev",
+        "symsvel-framework/module-settings": "dev-dev"
     },
     "autoload": {
         "psr-4": {
-            "SymSvel\\Module\\2fa\\": "back/src/"
+            "SymSvel\\Module\\TwoFactor\\": "back/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "SymSvel\\Module\\2fa\\Tests\\": "back/tests/"
+            "SymSvel\\Module\\TwoFactor\\Tests\\": "back/tests/"
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^13.4"
+        "phpunit/phpunit": "^13.4",
+        "doctrine/orm": "^3.5",
+        "symsvel-framework/module-acls": "dev-dev"
     },
     "scripts": {
         "test": "phpunit -c back/phpunit.xml.dist",
@@ -33,5 +38,19 @@
         "branch-alias": {
             "dev-main": "1.0.x-dev"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Symsvel-Framework/symsvel-module-auth.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Symsvel-Framework/symsvel-module-settings.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Symsvel-Framework/symsvel-module-acls.git"
+        }
+    ]
 }
