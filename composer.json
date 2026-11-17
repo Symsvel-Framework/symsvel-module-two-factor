@@ -1,5 +1,5 @@
 {
-    "name": "symsvel-framework/module-2fa",
+    "name": "symsvel-framework/module-two-factor",
     "description": "Optional native TOTP and recovery-code second-factor module for SymSvel",
     "type": "symfony-bundle",
     "license": "proprietary",
