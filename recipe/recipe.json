@@ -1,6 +1,6 @@
 {
     "manifests": {
-        "symsvel-framework/module-2fa": {
+        "symsvel-framework/module-two-factor": {
             "manifest": {
                 "bundles": {
                     "SymSvel\\Module\\TwoFactor\\TwoFactorBundle": [
@@ -12,11 +12,11 @@
                 }
             },
             "files": {
-                "config/routes/2fa.yaml": {
+                "config/routes/two-factor.yaml": {
                     "contents": [
                         "two_factor:",
                         "    resource:",
-                        "        path: '../../vendor/symsvel-framework/module-2fa/back/src/Controller/'",
+                        "        path: '../../vendor/symsvel-framework/module-two-factor/back/src/Controller/'",
                         "        namespace: SymSvel\\Module\\TwoFactor\\Controller",
                         "    type: attribute",
                         ""
