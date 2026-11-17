@@ -23,7 +23,8 @@
     "require-dev": {
         "phpunit/phpunit": "^13.4",
         "doctrine/orm": "^3.5",
-        "symsvel-framework/module-acls": "dev-dev"
+        "symsvel-framework/module-acls": "dev-dev",
+        "symsvel-framework/module-mails": "dev-dev"
     },
     "scripts": {
         "test": "phpunit -c back/phpunit.xml.dist",
@@ -51,6 +52,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/Symsvel-Framework/symsvel-module-acls.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Symsvel-Framework/symsvel-module-mails.git"
         }
     ]
 }
