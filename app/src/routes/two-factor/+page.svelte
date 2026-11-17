@@ -6,7 +6,7 @@
     pendingAppSecondFactor,
     completeAppSecondFactor,
     type SecondFactorChallenge
-  } from '#lib/api/session';
+  } from '../../../../api/session';
 
   let challenge = $state<SecondFactorChallenge | null>(null);
   let code = $state('');
