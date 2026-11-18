@@ -81,3 +81,8 @@ manuel masqué par défaut et son ouverture en cas d'URI QR invalide. L'assembla
 App exécute également un test navigateur de la route 2FA avec challenge 202,
 PNG généré et clé manuelle accessible. Ces tests ne valident pas le scan par
 un authenticator réel ; celui-ci reste à effectuer au crash-test utilisateur.
+
+
+## Traductions 2FA (18/11/2026)
+
+Le module TwoFactor possède ses libellés BO et App, dans `bo/src/lib/translations/<lang>.ts` et `app/src/lib/translations/<lang>.ts`. Les chemins canoniques sont `bo.two-factor.<clé>` et `app.two-factor.<clé>` ; Tooling copie les sources dans les hôtes et Languages persiste les traductions par défaut après migrations. Le QR code reste généré localement, la configuration manuelle reste disponible. CI + CT XT exigés.

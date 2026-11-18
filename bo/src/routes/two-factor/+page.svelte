@@ -3,11 +3,17 @@
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
   import QRCode from 'qrcode';
+  import { uiLanguage } from '../../../../api/locales';
+  import { generatedTranslation } from '../../../../i18n/generated-translations';
   import {
     pendingBoSecondFactor,
     completeBoSecondFactor,
     type SecondFactorChallenge
   } from '../../../../api/session';
+
+  function tr(key: string, fallback: string): string {
+    return generatedTranslation($uiLanguage, 'bo.two-factor.' + key) ?? fallback;
+  }
 
   let challenge = $state<SecondFactorChallenge | null>(null);
   let code = $state('');
@@ -57,58 +63,58 @@
         await goto(resolve('/dashboard'), { replaceState: true });
       }
     } catch {
-      error = 'Code invalide ou expiré. Vérifiez votre application ou reconnectez-vous.';
+      error = tr('invalidCode', "Code invalide ou expiré. Vérifiez votre application ou reconnectez-vous.");
     } finally {
       busy = false;
     }
   }
 </script>
 
-<svelte:head><title>Double authentification | SymSvel BO</title></svelte:head>
+<svelte:head><title>{tr('title', "Double authentification")} | SymSvel BO</title></svelte:head>
 
 <main class="auth-shell">
   <section class="auth-card">
     <header><strong>SymSvel</strong><span>BO</span></header>
     {#if recoveryCodes.length}
-      <h1>Codes de secours</h1>
-      <p>Conservez ces codes dans un endroit sûr. Ils ne seront plus affichés.</p>
+      <h1>{tr('recoveryTitle', "Codes de secours")}</h1>
+      <p>{tr('recoveryHint', "Conservez ces codes dans un endroit sûr. Ils ne seront plus affichés.")}</p>
       <ul>
         {#each recoveryCodes as recovery (recovery)}
           <li><code>{recovery}</code></li>
         {/each}
       </ul>
-      <button onclick={() => goto(resolve('/dashboard'), { replaceState: true })}>J'ai enregistré mes codes</button>
+      <button onclick={() => goto(resolve('/dashboard'), { replaceState: true })}>{tr('saved', "J'ai enregistré mes codes")}</button>
     {:else if challenge}
-      <h1>{challenge.enrollment_required ? 'Activer la double authentification' : 'Double authentification'}</h1>
+      <h1>{challenge.enrollment_required ? tr('enroll', "Activer la double authentification") : tr('title', "Double authentification")}</h1>
       {#if challenge.enrollment_required}
-        <p>Scannez ce QR code avec votre application d'authentification TOTP.</p>
+        <p>{tr('qrInstruction', "Scannez ce QR code avec votre application d'authentification TOTP.")}</p>
         {#if qrCode}
           <div class="totp-qr">
-            <img src={qrCode} alt="QR code de configuration de la double authentification" width="240" height="240" />
+            <img src={qrCode} alt={tr('qrAlt', "QR code de configuration de la double authentification")} width="240" height="240" />
           </div>
         {:else if qrLoading}
-          <p role="status">Génération du QR code…</p>
+          <p role="status">{tr('qrLoading', "Génération du QR code…")}</p>
         {:else if qrFailed}
-          <p role="status">QR code indisponible. Utilisez la configuration manuelle ci-dessous.</p>
+          <p role="status">{tr('qrFailed', "QR code indisponible. Utilisez la configuration manuelle ci-dessous.")}</p>
         {/if}
         {#if challenge.totp_secret}
           <details open={qrFailed}>
-            <summary>Configuration manuelle</summary>
-            <p>Si vous ne pouvez pas scanner le QR code, ajoutez cette clé dans votre application :</p>
+            <summary>{tr('manual', "Configuration manuelle")}</summary>
+            <p>{tr('manualHint', "Si vous ne pouvez pas scanner le QR code, ajoutez cette clé dans votre application :")}</p>
             <code class="totp-secret">{challenge.totp_secret}</code>
           </details>
         {/if}
-        <p>Une fois le compte ajouté, saisissez son premier code à six chiffres.</p>
+        <p>{tr('firstCode', "Une fois le compte ajouté, saisissez son premier code à six chiffres.")}</p>
       {:else}
-        <p>Saisissez un code TOTP à six chiffres ou un code de secours.</p>
+        <p>{tr('challengeHint', "Saisissez un code TOTP à six chiffres ou un code de secours.")}</p>
       {/if}
       {#if error}<p class="alert" role="alert">{error}</p>{/if}
       <form class="form" onsubmit={submit}>
-        <label for="two-factor-code">Code de vérification</label>
+        <label for="two-factor-code">{tr('codeLabel', "Code de vérification")}</label>
         <input id="two-factor-code" type="text" inputmode="text" autocomplete="one-time-code" bind:value={code} required />
-        <button type="submit" disabled={busy}>{busy ? 'Vérification…' : 'Valider'}</button>
+        <button type="submit" disabled={busy}>{busy ? tr('busy', "Vérification…") : tr('submit', "Valider")}</button>
       </form>
-      <p><a href={resolve('/login')}>Recommencer la connexion</a></p>
+      <p><a href={resolve('/login')}>{tr('restart', "Recommencer la connexion")}</a></p>
     {/if}
   </section>
 </main>
