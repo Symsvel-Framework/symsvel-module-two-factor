@@ -86,3 +86,7 @@ un authenticator réel ; celui-ci reste à effectuer au crash-test utilisateur.
 ## Traductions 2FA (18/11/2026)
 
 Le module TwoFactor possède ses libellés BO et App, dans `bo/src/lib/translations/<lang>.ts` et `app/src/lib/translations/<lang>.ts`. Les chemins canoniques sont `bo.two-factor.<clé>` et `app.two-factor.<clé>` ; Tooling copie les sources dans les hôtes et Languages persiste les traductions par défaut après migrations. Le QR code reste généré localement, la configuration manuelle reste disponible. CI + CT XT exigés.
+
+### QA des dictionnaires 2FA
+
+La CI d'intégration assemble désormais les dictionnaires FR/EN BO et App à la même destination que Tooling : `src/lib/translations/two-factor`. Les écrans du second facteur sont compilés avec les clés `bo.two-factor.*` et `app.two-factor.*` et les tests E2E existants sont rejoués. Le déclencheur de branche de travail est temporaire : il sera retiré après validation, sans toucher aux branches `dev` et `main`.

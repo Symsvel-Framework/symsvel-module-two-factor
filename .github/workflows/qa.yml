@@ -1,7 +1,7 @@
 name: QA
 on:
   push:
-    branches: [dev, main]
+    branches: [dev, main, 'feat/translations-sources']
   pull_request:
     branches: [dev, main]
 concurrency:
@@ -57,6 +57,8 @@ jobs:
           mkdir -p assembled-bo/src/lib/modules/two-factor/routes/two-factor
           mkdir -p assembled-bo/src/routes/two-factor
           cp bo/src/routes/two-factor/+page.svelte assembled-bo/src/lib/modules/two-factor/routes/two-factor/+page.svelte
+          mkdir -p assembled-bo/src/lib/translations/two-factor
+          cp bo/src/lib/translations/*.ts assembled-bo/src/lib/translations/two-factor/
           cat > assembled-bo/src/routes/two-factor/+page.svelte <<'ROUTE'
           <script lang="ts">
             import ModulePage from '#lib/modules/two-factor/routes/two-factor/+page.svelte';
@@ -97,6 +99,8 @@ jobs:
           mkdir -p assembled-app/src/lib/modules/two-factor/routes/two-factor
           mkdir -p assembled-app/src/routes/two-factor
           cp app/src/routes/two-factor/+page.svelte assembled-app/src/lib/modules/two-factor/routes/two-factor/+page.svelte
+          mkdir -p assembled-app/src/lib/translations/two-factor
+          cp app/src/lib/translations/*.ts assembled-app/src/lib/translations/two-factor/
           mkdir -p assembled-app/tests
           cp tests/app-qr.e2e.ts assembled-app/tests/app-qr.e2e.ts
           cat > assembled-app/src/routes/two-factor/+page.svelte <<'ROUTE'
