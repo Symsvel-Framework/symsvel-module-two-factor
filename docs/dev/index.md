@@ -35,3 +35,20 @@ Les deux parcours `/two-factor` sont fournis par le module et synchronisés au b
 Tests unitaires : vecteurs RFC 6238, Base32 strict, codes de secours, chiffrement Sodium, enregistrement des services et indépendance des paramètres. Test d'intégration : véritable SQLite + `SettingManager` + `DbalTokenStore`, sans serveur réseau, pour contrôler l'émission conditionnelle, le rejeu, l'expiration, le contexte, les codes de récupération et le verrouillage après cinq tentatives erronées. Un nouveau challenge doit rester utilisable après l'épuisement du précédent.
 
 Les tests sur SQLite ne remplacent pas les CT sur PostgreSQL, MySQL et MariaDB. Le projet BO seul ne doit pas exiger Users ; App ne doit pas être supposée présente. Toute installation via CLI nécessite publication de la recette Flex et résolution Composer sur Satis. La recette du module ne suffit pas si elle n'est pas ajoutée au catalogue technique.
+
+## Test navigateur d'assemblage BO avec challenge HTTP 202 (18/11/2026)
+
+La CI `bo-frontend` ne se limite plus au lint et au build statique :
+le test `tests/bo-second-factor.e2e.ts` est copié dans le BO réellement
+assemblé avec la page TwoFactor fournie par le module, puis exécuté via
+Playwright Chromium. Avec des réponses API simulées (aucun mot de passe réel),
+il vérifie la navigation `/login → HTTP 202 → /two-factor → /dashboard`,
+le retour de `/two-factor` vers `/login` sans challenge, la conservation du
+challenge lors d'un rechargement, son effacement après validation et l'absence
+d'appel prématuré à `/apibo/auth/browser/refresh`.
+
+Ce test vérifie le routage et le cycle navigateur de l'assemblage, mais ne
+prouve ni le déploiement des fichiers sur le projet XT ni l'intégration avec
+le véritable backend et ses cookies. Si le CT local échoue alors que ce test
+passe, comparer la route Svelte synchronisée, le build servi et le contenu
+non sensible de la réponse 202 avant de modifier Auth.

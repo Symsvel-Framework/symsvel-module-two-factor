@@ -63,6 +63,8 @@ jobs:
           </script>
           <ModulePage />
           ROUTE
+          mkdir -p assembled-bo/tests
+          cp tests/bo-second-factor.e2e.ts assembled-bo/tests/bo-second-factor.e2e.ts
       - name: Validate assembled BO static Svelte
         working-directory: assembled-bo
         run: |
@@ -71,6 +73,8 @@ jobs:
           npm run check
           npm run lint
           npm run build
+          npx playwright install chromium
+          npx playwright test tests/bo-second-factor.e2e.ts
 
   app-frontend:
     runs-on: [self-hosted, linux, ARM64, symsvel]
