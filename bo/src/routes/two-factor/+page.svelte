@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
+  import QRCode from 'qrcode';
   import {
     pendingBoSecondFactor,
     completeBoSecondFactor,
@@ -13,11 +14,36 @@
   let error = $state('');
   let busy = $state(false);
   let recoveryCodes = $state<string[]>([]);
+  let qrCode = $state('');
+  let qrLoading = $state(false);
+  let qrFailed = $state(false);
 
   onMount(() => {
     challenge = pendingBoSecondFactor();
-    if (!challenge) void goto(resolve('/login'), { replaceState: true });
+    if (!challenge) {
+      void goto(resolve('/login'), { replaceState: true });
+      return;
+    }
+    if (challenge.enrollment_required) {
+      if (challenge.provisioning_uri?.startsWith('otpauth://totp/')) {
+        void generateQrCode(challenge.provisioning_uri);
+      } else {
+        qrFailed = true;
+      }
+    }
   });
+
+  async function generateQrCode(uri: string): Promise<void> {
+    qrLoading = true;
+    try {
+      // A local data URL: the TOTP secret is never sent to a remote QR service.
+      qrCode = await QRCode.toDataURL(uri, { errorCorrectionLevel: 'M', margin: 2, width: 240 });
+    } catch {
+      qrFailed = true;
+    } finally {
+      qrLoading = false;
+    }
+  }
 
   async function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -55,10 +81,22 @@
     {:else if challenge}
       <h1>{challenge.enrollment_required ? 'Activer la double authentification' : 'Double authentification'}</h1>
       {#if challenge.enrollment_required}
-        <p>Ajoutez ce compte dans votre application TOTP (2FAS, Google Authenticator ou équivalent).</p>
+        <p>Scannez ce QR code avec votre application d'authentification TOTP.</p>
+        {#if qrCode}
+          <div class="totp-qr">
+            <img src={qrCode} alt="QR code de configuration de la double authentification" width="240" height="240" />
+          </div>
+        {:else if qrLoading}
+          <p role="status">Génération du QR code…</p>
+        {:else if qrFailed}
+          <p role="status">QR code indisponible. Utilisez la configuration manuelle ci-dessous.</p>
+        {/if}
         {#if challenge.totp_secret}
-          <p>Clé de configuration manuelle :</p>
-          <code>{challenge.totp_secret}</code>
+          <details open={qrFailed}>
+            <summary>Configuration manuelle</summary>
+            <p>Si vous ne pouvez pas scanner le QR code, ajoutez cette clé dans votre application :</p>
+            <code class="totp-secret">{challenge.totp_secret}</code>
+          </details>
         {/if}
         <p>Une fois le compte ajouté, saisissez son premier code à six chiffres.</p>
       {:else}
@@ -74,3 +112,26 @@
     {/if}
   </section>
 </main>
+
+<style>
+  .totp-qr {
+    display: inline-block;
+    max-width: 100%;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: #fff;
+    border-radius: 0.5rem;
+  }
+
+  .totp-qr img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .totp-secret {
+    display: block;
+    overflow-wrap: anywhere;
+    margin: 0.5rem 0 1rem;
+  }
+</style>

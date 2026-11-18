@@ -26,9 +26,9 @@ La 2FA n'est pas un facteur supplémentaire pour le rafraîchissement d'une mêm
 
 ## Frontend et limites
 
-Les deux parcours `/two-factor` sont fournis par le module et synchronisés au build statique Svelte par Tooling. Les pages demandent une clé TOTP manuelle à la première activation, un code TOTP ou un code de secours, puis affichent les codes de récupération après activation. Aucun refresh BO n'est exposé en JavaScript. La saisie est réinitialisée après validation et le challenge n'est gardé qu'en mémoire d'onglet ; un rechargement de la page nécessite une nouvelle connexion.
+Les deux parcours `/two-factor` sont fournis par le module et synchronisés au build statique Svelte par Tooling. Lors de la première activation, les pages génèrent un QR code **local** à partir de l'URI `otpauth://` fournie par Auth avec `qrcode`, à la manière d'XCore. La clé TOTP manuelle est disponible dans un volet de secours et s'ouvre automatiquement en cas d'échec du QR. Les pages demandent ensuite un code TOTP ou un code de secours, puis affichent les codes de récupération après activation. Aucun refresh BO n'est exposé en JavaScript. La saisie est réinitialisée après validation et le BO conserve son challenge temporaire dans `sessionStorage` par onglet (rechargement autorisé), alors que l'App ne le conserve encore qu'en mémoire JavaScript (rechargement exigeant une nouvelle connexion).
 
-**Limites à traiter avant une release stable :** finaliser la personnalisation de l'interface et les traductions i18n via Languages (les textes de cette première version sont provisoires), QR code local facultatif, parcours d'enrôlement volontaire pour les comptes lorsque la politique n'est pas obligatoire, parcours administratif de réinitialisation TOTP avec vérification renforcée, nettoyage des challenges expirés, stratégie de rotation du secret de chiffrement, tests de contention multi-SGBD et de restauration après interruption. Ces sujets ne doivent pas être masqués par une CI verte.
+**Limites à traiter avant une release stable :** finaliser la personnalisation de l'interface et les traductions i18n via Languages (les textes de cette première version sont provisoires), parcours d'enrôlement volontaire pour les comptes lorsque la politique n'est pas obligatoire, parcours administratif de réinitialisation TOTP avec vérification renforcée, nettoyage des challenges expirés, stratégie de rotation du secret de chiffrement, tests de contention multi-SGBD et de restauration après interruption. Ces sujets ne doivent pas être masqués par une CI verte.
 
 ## Validation
 
@@ -52,3 +52,23 @@ prouve ni le déploiement des fichiers sur le projet XT ni l'intégration avec
 le véritable backend et ses cookies. Si le CT local échoue alors que ce test
 passe, comparer la route Svelte synchronisée, le build servi et le contenu
 non sensible de la réponse 202 avant de modifier Auth.
+
+## QR code d'enrôlement local (18/11/2026)
+
+Le QR est généré au montage de la route seulement si le serveur renvoie
+`enrollment_required=true` et une URI `otpauth://totp/`. Les deux pages
+Svelte utilisent `QRCode.toDataURL(uri, { errorCorrectionLevel: 'M', margin: 2,
+width: 240 })` pour produire un PNG en mémoire sans aucune requête à un
+service QR distant. L'image n'est pas conservée après fermeture de la page.
+En cas d'URI absente/invalide ou d'échec de génération, la clé manuelle
+reste disponible et son volet est ouvert. Le QR n'est jamais affiché pour
+une connexion à un compte 2FA déjà activé.
+
+Les bibliothèques `qrcode@^1.5.4` et `@types/qrcode@^1.5.5` sont
+maintenues dans les hôtes BO/App et leur lock npm, car les modules Svelte
+sont synchronisés dans ces hôtes et ne disposent pas d'un build autonome.
+Le module reste responsable de ses écrans, sans bibliothèque PHP de 2FA
+ajoutée ni changement à Auth. Mettre à jour les composants natifs avant la
+synchronisation du module, puis construire les deux interfaces. Les tests
+navigateur d'assemblage doivent confirmer un PNG local affiché ; les CT
+utilisateur doivent valider le scan sur un authenticator réel.
