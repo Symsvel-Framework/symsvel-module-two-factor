@@ -72,3 +72,12 @@ ajoutée ni changement à Auth. Mettre à jour les composants natifs avant la
 synchronisation du module, puis construire les deux interfaces. Les tests
 navigateur d'assemblage doivent confirmer un PNG local affiché ; les CT
 utilisateur doivent valider le scan sur un authenticator réel.
+
+### Tests navigateur du QR d'enrôlement (18/11/2026)
+
+L'assemblage BO teste désormais la présence d'un véritable PNG `data:`
+avec largeur native non nulle, sa régénération après rechargement, le volet
+manuel masqué par défaut et son ouverture en cas d'URI QR invalide. L'assemblage
+App exécute également un test navigateur de la route 2FA avec challenge 202,
+PNG généré et clé manuelle accessible. Ces tests ne valident pas le scan par
+un authenticator réel ; celui-ci reste à effectuer au crash-test utilisateur.

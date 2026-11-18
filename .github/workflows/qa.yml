@@ -97,6 +97,8 @@ jobs:
           mkdir -p assembled-app/src/lib/modules/two-factor/routes/two-factor
           mkdir -p assembled-app/src/routes/two-factor
           cp app/src/routes/two-factor/+page.svelte assembled-app/src/lib/modules/two-factor/routes/two-factor/+page.svelte
+          mkdir -p assembled-app/tests
+          cp tests/app-qr.e2e.ts assembled-app/tests/app-qr.e2e.ts
           cat > assembled-app/src/routes/two-factor/+page.svelte <<'ROUTE'
           <script lang="ts">
             import ModulePage from '#lib/modules/two-factor/routes/two-factor/+page.svelte';
@@ -111,3 +113,5 @@ jobs:
           npm run check
           npm run lint
           npm run build
+          npx playwright install chromium
+          npx playwright test tests/app-qr.e2e.ts
