@@ -90,3 +90,8 @@ Le module TwoFactor possède ses libellés BO et App, dans `bo/src/lib/translati
 ### QA des dictionnaires 2FA
 
 La CI d'intégration assemble désormais les dictionnaires FR/EN BO et App à la même destination que Tooling : `src/lib/translations/two-factor`. Les écrans du second facteur sont compilés avec les clés `bo.two-factor.*` et `app.two-factor.*` et les tests E2E existants sont rejoués. Le déclencheur de branche de travail est temporaire : il sera retiré après validation, sans toucher aux branches `dev` et `main`.
+
+
+### Validation CI de la branche de traduction (18/11/2026)
+
+La CI complète de `feat/translations-sources` a terminé avec succès sur les runners locaux. Le déclencheur temporaire de cette branche a été retiré du workflow, en conservant les déclencheurs habituels `dev`, `main` et PR. Les tests d'installation et crash-tests XT restent indispensables avant le merge.
