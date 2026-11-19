@@ -139,5 +139,20 @@
     display: block;
     overflow-wrap: anywhere;
     margin: 0.5rem 0 1rem;
+    padding: 10px 12px;
+    border: 1px solid var(--bo-border);
+    border-radius: 8px;
+    background: var(--bo-surface-muted);
+    color: var(--bo-text);
+  }
+  .auth-card li code {
+    display: inline-block;
+    overflow-wrap: anywhere;
+    padding: 6px 10px;
+    margin: 3px 0;
+    border: 1px solid var(--bo-border);
+    border-radius: 8px;
+    background: var(--bo-surface-muted);
+    color: var(--bo-text);
   }
 </style>

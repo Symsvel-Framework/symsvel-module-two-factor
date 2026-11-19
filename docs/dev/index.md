@@ -95,3 +95,7 @@ La CI d'intégration assemble désormais les dictionnaires FR/EN BO et App à la
 ### Validation CI de la branche de traduction (18/11/2026)
 
 La CI complète de `feat/translations-sources` a terminé avec succès sur les runners locaux. Le déclencheur temporaire de cette branche a été retiré du workflow, en conservant les déclencheurs habituels `dev`, `main` et PR. Les tests d'installation et crash-tests XT restent indispensables avant le merge.
+
+### Uniformisation BO clair/sombre (19/11/2026)
+
+Le challenge et l'enrôlement 2FA utilisent déjà le layout public natif `auth-shell`/`auth-card` du BO, sans shell authentifié ni seconde palette. Les clés de configuration manuelle et codes de secours sont désormais affichés sur des surfaces/bordures `--bo-surface-muted`, `--bo-border`, `--bo-text` adaptatives. **Exception volontaire : le fond du QR code reste blanc** pour garantir le contraste et la lecture par les applications TOTP même lorsque l'interface est sombre. Le secret TOTP reste local, jamais chargé depuis un serveur de QR distant. Aucun changement de transport, d'ACL ni d'authentification ; CI et CT XT requis.
