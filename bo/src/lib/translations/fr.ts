@@ -1,0 +1,20 @@
+export default {
+  "title": "Double authentification",
+  "invalidCode": "Code invalide ou expiré. Vérifiez votre application ou reconnectez-vous.",
+  "recoveryTitle": "Codes de secours",
+  "recoveryHint": "Conservez ces codes dans un endroit sûr. Ils ne seront plus affichés.",
+  "saved": "J'ai enregistré mes codes",
+  "enroll": "Activer la double authentification",
+  "qrInstruction": "Scannez ce QR code avec votre application d'authentification TOTP.",
+  "qrAlt": "QR code de configuration de la double authentification",
+  "qrLoading": "Génération du QR code…",
+  "qrFailed": "QR code indisponible. Utilisez la configuration manuelle ci-dessous.",
+  "manual": "Configuration manuelle",
+  "manualHint": "Si vous ne pouvez pas scanner le QR code, ajoutez cette clé dans votre application :",
+  "firstCode": "Une fois le compte ajouté, saisissez son premier code à six chiffres.",
+  "challengeHint": "Saisissez un code TOTP à six chiffres ou un code de secours.",
+  "codeLabel": "Code de vérification",
+  "busy": "Vérification…",
+  "submit": "Valider",
+  "restart": "Recommencer la connexion"
+} as const;

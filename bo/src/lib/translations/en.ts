@@ -1,0 +1,20 @@
+export default {
+  "title": "Two-factor authentication",
+  "invalidCode": "Invalid or expired code. Check your authenticator app or sign in again.",
+  "recoveryTitle": "Recovery codes",
+  "recoveryHint": "Keep these codes safe. They will not be shown again.",
+  "saved": "I saved my codes",
+  "enroll": "Enable two-factor authentication",
+  "qrInstruction": "Scan this QR code with your TOTP authenticator app.",
+  "qrAlt": "Two-factor authentication setup QR code",
+  "qrLoading": "Generating QR code…",
+  "qrFailed": "QR code unavailable. Use the manual setup below.",
+  "manual": "Manual setup",
+  "manualHint": "If you cannot scan the QR code, add this key to your app:",
+  "firstCode": "Once the account is added, enter its first six-digit code.",
+  "challengeHint": "Enter a six-digit TOTP code or a recovery code.",
+  "codeLabel": "Verification code",
+  "busy": "Verifying…",
+  "submit": "Confirm",
+  "restart": "Start sign-in again"
+} as const;

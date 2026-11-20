@@ -1,10 +1,18 @@
 {
     "schema": 1,
-    "name": "2fa",
-    "dependencies": {},
-    "tables": [],
+    "name": "TwoFactor",
+    "dependencies": {
+        "auth": "*",
+        "settings": "*"
+    },
+    "tables": [
+        "symsvel_2fa_accounts",
+        "symsvel_2fa_challenges"
+    ],
     "components": {
-        "back": "back"
+        "back": "back",
+        "bo": "bo",
+        "app": "app"
     },
     "documentation": {
         "dev": "docs/dev"

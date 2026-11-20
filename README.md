@@ -1,3 +1,43 @@
-# 2fa
+# SymSvel TwoFactor (module natif de sécurité)
 
-Module SymSvel (manifest schema 1).
+Dépôt GitHub : `symsvel-module-two-factor`. **Package Composer : `symsvel-framework/module-two-factor`**. Le dépôt, le package Composer et le manifeste `TwoFactor` suivent désormais une convention cohérente ; le slug `module-two-factor` respecte le contrat Tooling.
+
+Ce module ajoute une authentification à deux facteurs TOTP sans SchebTwoFactorBundle, en adaptant les classes XCore : `TotpService`, `SecretCipher`, `RecoveryCodeService` et le mécanisme de challenge temporaire.
+
+## Périmètre
+
+- Installé automatiquement avec les modules natifs ; dépend d'Auth et Settings. BO et App restent des contextes indépendants.
+- TOTP RFC 6238 SHA1, 6 chiffres, pas de 30 s, fenêtre ±1 pas.
+- Clé TOTP chiffrée par libsodium ; codes de secours hachés et consommables une seule fois.
+- Challenge aléatoire opaque 256 bits, hash SHA-256 en BDD, durée 5 min et 5 tentatives maximum.
+- Rejeu d'un même TOTP interdit par compte et par fenêtre temporelle.
+- Le module stocke ses deux tables, sans entité métier dans Back/Core.
+- L'identité est toujours validée par Auth et les tokens sont exclusivement émis par Auth, dans la transaction qui consomme le challenge.
+
+## Configuration
+
+La 2FA est **toujours obligatoire pour toute nouvelle session BO**, y compris celle du premier administrateur créé au Setup. Aucun interrupteur BO ne peut désactiver cette obligation. L'ancien paramètre `two-factor.bo_required`, s'il existe dans une installation, est ignoré et n'est plus exposé dans Settings.
+
+Le paramètre `two-factor.app_required` permet d'imposer la 2FA côté App (désactivé par défaut). Sans politique App et sans compte déjà enrôlé, la connexion App demeure classique. Un compte App déjà enrôlé doit continuer à vérifier son second facteur, même si la politique globale est désactivée.
+
+La page optionnelle `/two-factor` est synchronisée dans BO et App via Tooling lors de l'installation du module. Lors du premier challenge, le module génère **localement un QR code** avec la bibliothèque `qrcode`, déjà utilisée dans XCore, à partir de `provisioning_uri`. La clé d'enrôlement reste disponible dans un volet de configuration manuelle si le QR code ne peut pas être affiché. Après validation, huit codes de secours apparaissent une seule fois. Aucun service externe ne reçoit la clé TOTP.
+
+Les écrans et les clients BO/App hôtes utilisent une réponse de challenge HTTP 202 sans stocker d'accès ou de rafraîchissement avant validation. Côté BO, le refresh reste dans le cookie HttpOnly géré par le contrôleur Auth existant.
+
+## État et validation
+
+Le code et les tests automatisés sont sur `dev`. Vérifier la CI du dernier commit ; puis effectuer un crash-test local, la synchronisation du module Svelte, les migrations Schema multibase, l'enrôlement BO obligatoire (y compris premier admin), l'App facultative, les codes de récupération, les expirations et le refus de connexion BO si le provider est absent. La livraison ne sera déclarée terminée qu'après CI verte, CT validés et documentation à jour.
+
+Voir [documentation technique](docs/dev/index.md).
+
+### Dépendances frontend du QR code (18/11/2026)
+
+Le module possède ses pages BO et App. Les builds Svelte sont réalisés dans
+les composants hôtes ; `qrcode@^1.5.4` (runtime) et
+`@types/qrcode@^1.5.5` (TypeScript) sont donc déclarés dans les dépôts
+`symsvel-bo` et `symsvel-app`, **pas dans Core ni Back**. Les fichiers
+`package-lock.json` des hôtes suivent ces dépendances. Sur un projet
+existant, mettre à jour BO et App (si présente) avec `symsvel update bo`
+et `symsvel update app` avant de synchroniser la version du module.
+La CI assemble les pages dans chaque hôte et doit vérifier que le QR
+produit est un vrai PNG local. CT utilisateur indispensable.
