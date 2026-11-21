@@ -1,5 +1,11 @@
 # SymSvel TwoFactor (module natif de sécurité)
 
+> [!IMPORTANT]
+> **Vous souhaitez utiliser SymSvel ? Rendez-vous sur [SymSvel CLI](https://github.com/Symsvel-Framework/symsvel-cli).** Ce dépôt est un **composant du framework**, pas un point d'installation autonome. Création de projets, installation des modules et mises à jour passent par la CLI. Les éventuelles commandes Composer, npm ou Symfony décrites ci-dessous concernent le travail des mainteneurs, sauf indication explicite contraire.
+>
+> [!WARNING]
+> **SymSvel est en cours de développement.** Les fonctionnalités et procédures peuvent évoluer ou présenter des anomalies. **Utilisation à vos risques et périls.**
+
 Dépôt GitHub : `symsvel-module-two-factor`. **Package Composer : `symsvel-framework/module-two-factor`**. Le dépôt, le package Composer et le manifeste `TwoFactor` suivent désormais une convention cohérente ; le slug `module-two-factor` respecte le contrat Tooling.
 
 Ce module ajoute une authentification à deux facteurs TOTP sans SchebTwoFactorBundle, en adaptant les classes XCore : `TotpService`, `SecretCipher`, `RecoveryCodeService` et le mécanisme de challenge temporaire.
@@ -45,3 +51,11 @@ produit est un vrai PNG local. CT utilisateur indispensable.
 ## Distribution stable v1.0.0 (20/11/2026)
 
 Le manifeste Composer du tag stable déclare exclusivement des contraintes `^1.0` pour ses dépendances SymSvel : `symsvel-framework/module-auth`, `symsvel-framework/module-settings`, `symsvel-framework/module-acls`, `symsvel-framework/module-mails`. Les références `dev-dev` restent réservées à la branche `dev` et à l'installation de maintenance avec `--dev`. Le tag `v1.0.0` n'est à publier **qu'après** le tag stable de chaque dépendance, son indexation dans Satis et la réussite des contrôles CI ; aucune release n'est produite par ce commit.
+
+---
+
+## Participer et soutenir le projet
+
+SymSvel est un projet en cours de développement. Pour contribuer, proposer une amélioration ou échanger avec le mainteneur : **[xavier@xavier-tezza.fr](mailto:xavier@xavier-tezza.fr)**.
+
+SymSvel vous est utile et vous souhaitez me remercier ? **Offrez-moi une bière ! 🍺** (lien PayPal à compléter avant l'ouverture publique).
