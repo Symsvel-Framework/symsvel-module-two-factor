@@ -54,6 +54,12 @@ Le manifeste Composer du tag stable déclare exclusivement des contraintes `^1.0
 
 ---
 
+## Intégration continue GitHub-hosted (22/11/2026)
+
+La QA active de ce dépôt public (`.github/workflows/qa.yml`) utilise **GitHub-hosted Ubuntu 24.04** , et non les runners Docker du mainteneur. Les tests PHP 8.4, BO SvelteKit et App SvelteKit utilisent Node.js 24 et Chromium avec ses dépendances.
+
+Les runners locaux sont réservés aux dépôts privés `symsvel-packages` et `symsvel-recipes`. Les crash-tests restent distincts de la CI.
+
 ## Licence MIT et contributions
 
 Ce dépôt est distribué sous [licence MIT](LICENSE). Le code peut être utilisé, modifié et redistribué, y compris dans des projets commerciaux ou propriétaires, dans les conditions de cette licence (notamment la conservation de la notice de copyright et de licence).
