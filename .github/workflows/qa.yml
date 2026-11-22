@@ -9,16 +9,22 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
-    runs-on: [self-hosted, linux, ARM64, symsvel]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, pdo_pgsql, pdo_mysql, sodium, intl
+          coverage: none
+          tools: composer:v2
       - name: Verify PHP 8.4 and sodium
         run: |
           php -v
           php -r 'if (PHP_VERSION_ID < 80400 || PHP_VERSION_ID >= 80500 || !extension_loaded("sodium")) exit(1);'
       - name: Install private Composer dependencies
         env:
-          SYMSVEL_READ_TOKEN: ${{ secrets.SYMSVEL_READ_TOKEN }}
+          SYMSVEL_READ_TOKEN: ${{ github.token }}
         run: |
           test -n "$SYMSVEL_READ_TOKEN"
           for repo in symsvel-module-auth symsvel-module-settings symsvel-module-acls; do
@@ -37,7 +43,7 @@ jobs:
       - run: composer qa
 
   bo-frontend:
-    runs-on: [self-hosted, linux, ARM64, symsvel]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - name: Checkout BO host on dev
@@ -46,7 +52,7 @@ jobs:
           repository: Symsvel-Framework/symsvel-bo
           ref: dev
           path: assembled-bo
-          token: ${{ secrets.SYMSVEL_READ_TOKEN }}
+          token: ${{ github.token }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -75,11 +81,11 @@ jobs:
           npm run check
           npm run lint
           npm run build
-          npx playwright install chromium
+          npx playwright install --with-deps chromium
           npx playwright test tests/bo-second-factor.e2e.ts
 
   app-frontend:
-    runs-on: [self-hosted, linux, ARM64, symsvel]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - name: Checkout APP host on dev
@@ -88,7 +94,7 @@ jobs:
           repository: Symsvel-Framework/symsvel-app
           ref: dev
           path: assembled-app
-          token: ${{ secrets.SYMSVEL_READ_TOKEN }}
+          token: ${{ github.token }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -117,5 +123,5 @@ jobs:
           npm run check
           npm run lint
           npm run build
-          npx playwright install chromium
+          npx playwright install --with-deps chromium
           npx playwright test tests/app-qr.e2e.ts
