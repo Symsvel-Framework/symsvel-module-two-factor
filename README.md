@@ -48,10 +48,6 @@ et `symsvel update app` avant de synchroniser la version du module.
 La CI assemble les pages dans chaque hôte et doit vérifier que le QR
 produit est un vrai PNG local. CT utilisateur indispensable.
 
-## Distribution stable v1.0.0 (20/11/2026)
-
-Le manifeste Composer du tag stable déclare exclusivement des contraintes `^1.0` pour ses dépendances SymSvel : `symsvel-framework/module-auth`, `symsvel-framework/module-settings`, `symsvel-framework/module-acls`, `symsvel-framework/module-mails`. Les références `dev-dev` restent réservées à la branche `dev` et à l'installation de maintenance avec `--dev`. Le tag `v1.0.0` n'est à publier **qu'après** le tag stable de chaque dépendance, son indexation dans Satis et la réussite des contrôles CI ; aucune release n'est produite par ce commit.
-
 ---
 
 ## Intégration continue GitHub-hosted (22/11/2026)
@@ -73,3 +69,7 @@ Ce dépôt est distribué sous [licence MIT](LICENSE). Le code peut être utilis
 SymSvel est un projet en cours de développement. Pour contribuer, proposer une amélioration ou échanger avec le mainteneur : **[xavier@xavier-tezza.fr](mailto:xavier@xavier-tezza.fr)**.
 
 SymSvel vous est utile et vous souhaitez me remercier ? **Offrez-moi une bière ! 🍺** (lien PayPal à compléter avant l'ouverture publique).
+
+## Promotion stable (24/11/2026)
+
+Les contraintes Composer de publication sont stables (`^1.0`), sans modifier le canal `dev`. Publier après les dépendances, leur indexation et les CI vertes. CT stable distinct.

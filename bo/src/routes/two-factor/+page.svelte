@@ -1,8 +1,11 @@
 <script lang="ts">
+  import { getProjectBrand } from '../../../../branding';
+  const brandName = getProjectBrand();
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
   import QRCode from 'qrcode';
+  import Button from '../../../../components/Button.svelte';
   import { uiLanguage } from '../../../../api/locales';
   import { generatedTranslation } from '../../../../i18n/generated-translations';
   import {
@@ -70,11 +73,11 @@
   }
 </script>
 
-<svelte:head><title>{tr('title', "Double authentification")} | SymSvel BO</title></svelte:head>
+<svelte:head><title>{tr('title', "Double authentification")} | {$brandName} BO</title></svelte:head>
 
 <main class="auth-shell">
   <section class="auth-card">
-    <header><strong>SymSvel</strong><span>BO</span></header>
+    <header><strong>{$brandName}</strong><span>BO</span></header>
     {#if recoveryCodes.length}
       <h1>{tr('recoveryTitle', "Codes de secours")}</h1>
       <p>{tr('recoveryHint', "Conservez ces codes dans un endroit sûr. Ils ne seront plus affichés.")}</p>
@@ -83,7 +86,9 @@
           <li><code>{recovery}</code></li>
         {/each}
       </ul>
-      <button onclick={() => goto(resolve('/dashboard'), { replaceState: true })}>{tr('saved', "J'ai enregistré mes codes")}</button>
+      <div class="recovery-actions">
+        <Button variant="success" onclick={() => goto(resolve('/dashboard'), { replaceState: true })}>{tr('saved', "J'ai enregistré mes codes")}</Button>
+      </div>
     {:else if challenge}
       <h1>{challenge.enrollment_required ? tr('enroll', "Activer la double authentification") : tr('title', "Double authentification")}</h1>
       {#if challenge.enrollment_required}
@@ -120,10 +125,16 @@
 </main>
 
 <style>
+  .recovery-actions {
+    display: grid;
+    margin-top: 1.5rem;
+  }
+
   .totp-qr {
-    display: inline-block;
+    display: block;
+    width: fit-content;
     max-width: 100%;
-    margin: 1rem 0;
+    margin: 1rem auto;
     padding: 0.75rem;
     background: #fff;
     border-radius: 0.5rem;

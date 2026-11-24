@@ -56,6 +56,12 @@ test('real assembled BO follows 202 -> 2FA -> dashboard without premature refres
 	const qr = page.getByRole('img', { name: 'QR code de configuration de la double authentification' });
 	await expect(qr).toBeVisible();
 	await expect(qr).toHaveAttribute('src', /^data:image\/png;base64,/);
+	// Compare the image and card centers rather than relying on a CSS class alone.
+	await expect.poll(() => qr.evaluate((image) => {
+		const card = image.closest('.auth-card')!.getBoundingClientRect();
+		const bounds = image.getBoundingClientRect();
+		return Math.abs((card.left + card.width / 2) - (bounds.left + bounds.width / 2));
+	})).toBeLessThan(1.5);
 	await expect.poll(() => qr.evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(100);
 	const manual = page.locator('details');
 	await expect(manual).not.toHaveAttribute('open', '');
@@ -108,4 +114,33 @@ test('BO displays manual enrollment if the local QR cannot be generated', async 
 	const manual = page.locator('details');
 	await expect(manual).toHaveAttribute('open', '');
 	await expect(manual.locator('.totp-secret')).toHaveText(challenge.totp_secret);
+});
+
+
+test('BO recovery codes use the native confirmation button before dashboard', async ({ page }) => {
+	const recoveryCodes = ['TEST-CODE-ONE', 'TEST-CODE-TWO'];
+	await page.route('**/apibo/auth/browser/login?*', (route) =>
+		route.fulfill({ status: 202, json: challenge })
+	);
+	await page.route('**/apibo/auth/browser/second-factor?*', (route) =>
+		route.fulfill({ status: 200, json: { ...tokens, recovery_codes: recoveryCodes } })
+	);
+	await page.route('**/apibo/auth/me?*', (route) =>
+		route.fulfill({ status: 200, json: { id: 7, context: 'bo' } })
+	);
+	await page.goto('/login');
+	await page.getByLabel('Adresse e-mail').fill('admin@example.test');
+	await page.getByLabel('Mot de passe').fill('password');
+	await page.getByRole('button', { name: 'Se connecter' }).click();
+	await expect(page).toHaveURL(/\/two-factor$/);
+	await page.getByLabel('Code de vérification').fill('123456');
+	await page.getByRole('button', { name: 'Valider' }).click();
+	await expect(page.getByRole('heading', { name: 'Codes de secours' })).toBeVisible();
+	for (const code of recoveryCodes) await expect(page.getByText(code, { exact: true })).toBeVisible();
+	const confirmation = page.getByRole('button', { name: /enregistré mes codes/ });
+	await expect(confirmation).toHaveClass(/\bbo-button-success\b/);
+	await expect(confirmation).toHaveAttribute('type', 'button');
+	await confirmation.click();
+	await expect(page).toHaveURL(/\/dashboard$/);
+	await expect(page.getByText('Administrateur #7')).toBeVisible();
 });

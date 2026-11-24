@@ -99,3 +99,11 @@ La CI complète de `feat/translations-sources` a terminé avec succès sur les r
 ### Uniformisation BO clair/sombre (19/11/2026)
 
 Le challenge et l'enrôlement 2FA utilisent déjà le layout public natif `auth-shell`/`auth-card` du BO, sans shell authentifié ni seconde palette. Les clés de configuration manuelle et codes de secours sont désormais affichés sur des surfaces/bordures `--bo-surface-muted`, `--bo-border`, `--bo-text` adaptatives. **Exception volontaire : le fond du QR code reste blanc** pour garantir le contraste et la lecture par les applications TOTP même lorsque l'interface est sombre. Le secret TOTP reste local, jamais chargé depuis un serveur de QR distant. Aucun changement de transport, d'ACL ni d'authentification ; CI et CT XT requis.
+
+## Branding et sécurité
+
+Les écrans du module lisent le nom public avec `getProjectBrand()` du composant hôte BO/App et affichent `$brandName`. Le layout effectue la requête ; le module ne crée ni état de branding ni requête indépendante. Le nom de repli est géré par l'hôte. L'intégration au composant hôte est vérifiée par la QA ; le CT doit vérifier les en-têtes et titres avec un nom de projet personnalisé. La QA PHP exécute également `composer audit --locked` après installation, sans exclusion d'avis.
+
+## Finitions visuelles de l'enrôlement et des codes de secours
+
+Le cadre blanc du QR local est centré horizontalement dans la carte d'authentification BO/App (`width: fit-content`, `margin: 1rem auto`), avec largeur maximale responsive ; son contraste reste indépendant du thème. La confirmation « J'ai enregistré mes codes » du BO utilise le composant natif `Button` (`variant="success"`, confirmation positive), sans redéfinir sa palette. L'App ne fournit pas encore ce composant : son bouton utilise le style d'authentification existant `.form`. Les actions conservent leurs traductions et leur navigation. Les tests navigateur contrôlent le centrage mesuré du QR ainsi que le parcours codes de secours → confirmation → dashboard sur les deux hôtes. Aucune modification du protocole 2FA ni de la génération des secrets.
