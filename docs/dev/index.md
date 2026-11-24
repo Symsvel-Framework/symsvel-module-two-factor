@@ -99,3 +99,7 @@ La CI complète de `feat/translations-sources` a terminé avec succès sur les r
 ### Uniformisation BO clair/sombre (19/11/2026)
 
 Le challenge et l'enrôlement 2FA utilisent déjà le layout public natif `auth-shell`/`auth-card` du BO, sans shell authentifié ni seconde palette. Les clés de configuration manuelle et codes de secours sont désormais affichés sur des surfaces/bordures `--bo-surface-muted`, `--bo-border`, `--bo-text` adaptatives. **Exception volontaire : le fond du QR code reste blanc** pour garantir le contraste et la lecture par les applications TOTP même lorsque l'interface est sombre. Le secret TOTP reste local, jamais chargé depuis un serveur de QR distant. Aucun changement de transport, d'ACL ni d'authentification ; CI et CT XT requis.
+
+## Branding et sécurité
+
+Les écrans du module lisent le nom public avec `getProjectBrand()` du composant hôte BO/App et affichent `$brandName`. Le layout effectue la requête ; le module ne crée ni état de branding ni requête indépendante. Le nom de repli est géré par l'hôte. L'intégration au composant hôte est vérifiée par la QA ; le CT doit vérifier les en-têtes et titres avec un nom de projet personnalisé. La QA PHP exécute également `composer audit --locked` après installation, sans exclusion d'avis.

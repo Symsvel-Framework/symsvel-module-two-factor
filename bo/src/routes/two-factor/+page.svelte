@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { getProjectBrand } from '../../lib/branding';
+  const brandName = getProjectBrand();
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
@@ -70,11 +72,11 @@
   }
 </script>
 
-<svelte:head><title>{tr('title', "Double authentification")} | SymSvel BO</title></svelte:head>
+<svelte:head><title>{tr('title', "Double authentification")} | {$brandName} BO</title></svelte:head>
 
 <main class="auth-shell">
   <section class="auth-card">
-    <header><strong>SymSvel</strong><span>BO</span></header>
+    <header><strong>{$brandName}</strong><span>BO</span></header>
     {#if recoveryCodes.length}
       <h1>{tr('recoveryTitle', "Codes de secours")}</h1>
       <p>{tr('recoveryHint', "Conservez ces codes dans un endroit sûr. Ils ne seront plus affichés.")}</p>
