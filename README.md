@@ -69,3 +69,7 @@ Ce dépôt est distribué sous [licence MIT](LICENSE). Le code peut être utilis
 SymSvel est un projet en cours de développement. Pour contribuer, proposer une amélioration ou échanger avec le mainteneur : **[xavier@xavier-tezza.fr](mailto:xavier@xavier-tezza.fr)**.
 
 SymSvel vous est utile et vous souhaitez me remercier ? **Offrez-moi une bière ! 🍺** (lien PayPal à compléter avant l'ouverture publique).
+
+## Promotion stable (24/11/2026)
+
+Les contraintes Composer de publication sont stables (`^1.0`), sans modifier le canal `dev`. Publier après les dépendances, leur indexation et les CI vertes. CT stable distinct.
